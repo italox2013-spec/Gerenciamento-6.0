@@ -8,7 +8,13 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || (() => {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('FATAL: JWT_SECRET environment variable must be set in production');
+    process.exit(1);
+  }
+  return 'dev-secret-key-not-for-production';
+})();
 
 // Middleware
 app.use(cors());
@@ -136,8 +142,22 @@ app.put('/api/admin/users/:id/password', authenticateToken, authorizeRole('admin
 
 // Create backup (Admin only)
 app.post('/api/admin/backups', authenticateToken, authorizeRole('administrador'), (req, res) => {
+  const fs = require('fs');
   const filename = `backup_${Date.now()}.db`;
   const userId = req.user.id;
+
+  // Create actual backup file
+  try {
+    fs.copyFileSync('./gerenciamento.db', `./backups/${filename}`);
+  } catch (err) {
+    // Create backups directory if it doesn't exist
+    if (!fs.existsSync('./backups')) {
+      fs.mkdirSync('./backups');
+      fs.copyFileSync('./gerenciamento.db', `./backups/${filename}`);
+    } else {
+      return res.status(500).json({ error: 'Failed to create backup file' });
+    }
+  }
 
   db.run(
     'INSERT INTO backups (filename, created_by) VALUES (?, ?)',
@@ -483,13 +503,16 @@ app.delete('/api/empreendedor/inventory/:id', authenticateToken, authorizeRole('
 
 // Calculate statistics
 function calculateStats(values) {
-  if (values.length === 0) return { average: 0, stdDev: 0, min: 0, max: 0, total: 0 };
+  if (values.length === 0) return { average: 0, stdDev: 0, min: 0, max: 0, total: 0, count: 0 };
 
   const total = values.reduce((sum, val) => sum + val, 0);
   const average = total / values.length;
   
+  // Use sample standard deviation (n-1) for better statistical accuracy
   const squaredDiffs = values.map(val => Math.pow(val - average, 2));
-  const variance = squaredDiffs.reduce((sum, val) => sum + val, 0) / values.length;
+  const variance = values.length > 1 
+    ? squaredDiffs.reduce((sum, val) => sum + val, 0) / (values.length - 1)
+    : 0;
   const stdDev = Math.sqrt(variance);
 
   return {
@@ -523,9 +546,9 @@ app.get('/api/relatorios/pessoal', authenticateToken, (req, res) => {
         (err, investments) => {
           if (err) return res.status(500).json({ error: 'Database error' });
 
-          const investmentReturns = investments.map(inv => 
-            ((inv.current_value - inv.amount) / inv.amount) * 100
-          );
+          const investmentReturns = investments
+            .filter(inv => inv.amount > 0)  // Avoid division by zero
+            .map(inv => ((inv.current_value - inv.amount) / inv.amount) * 100);
 
           res.json({
             finances: {

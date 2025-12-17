@@ -190,7 +190,10 @@ async function apiGet(endpoint) {
     const response = await fetch(`${API_URL}${endpoint}`, {
         headers: { 'Authorization': `Bearer ${token}` }
     });
-    if (!response.ok) throw new Error('API Error');
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+    }
     return await response.json();
 }
 
@@ -203,7 +206,10 @@ async function apiPost(endpoint, data) {
         },
         body: JSON.stringify(data)
     });
-    if (!response.ok) throw new Error('API Error');
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+    }
     return await response.json();
 }
 
@@ -216,7 +222,10 @@ async function apiPut(endpoint, data) {
         },
         body: JSON.stringify(data)
     });
-    if (!response.ok) throw new Error('API Error');
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+    }
     return await response.json();
 }
 
@@ -225,7 +234,10 @@ async function apiDelete(endpoint) {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
     });
-    if (!response.ok) throw new Error('API Error');
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+    }
     return await response.json();
 }
 
