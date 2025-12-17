@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento Financeiro 6.0</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 Gerenciamento Financeiro 6.0</h1>
+            <p>Sistema completo de gestão pessoal e empresarial</p>
+        </div>
+
+        <div class="content">
+            <!-- Login Form -->
+            <div class="login-form active" id="loginForm">
+                <h2 style="margin-bottom: 20px; color: #333;">Login</h2>
+                <div id="loginError" style="display: none;" class="alert alert-error"></div>
+                <div class="form-group">
+                    <label>Usuário</label>
+                    <input type="text" id="username" placeholder="Digite seu usuário">
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="password" placeholder="Digite sua senha">
+                </div>
+                <button class="btn" onclick="login()">Entrar</button>
+                <div style="margin-top: 20px; padding: 15px; background: #e7f3ff; border-radius: 8px;">
+                    <strong>Credenciais padrão:</strong><br>
+                    Usuário: admin | Senha: admin123
+                </div>
+            </div>
+
+            <!-- Dashboard -->
+            <div class="dashboard" id="dashboard">
+                <div class="user-info">
+                    <div>
+                        <strong>Usuário:</strong> <span id="currentUser"></span> | 
+                        <strong>Perfil:</strong> <span id="currentRole"></span>
+                    </div>
+                    <button class="btn btn-secondary" onclick="logout()">Sair</button>
+                </div>
+
+                <div id="alertContainer"></div>
+
+                <!-- Tabs -->
+                <div class="tabs" id="tabButtons"></div>
+
+                <!-- Tab Contents -->
+                <div id="tabContents"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle"></h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="dashboards.js"></script>
+    <script src="business.js"></script>
+</body>
+</html>
